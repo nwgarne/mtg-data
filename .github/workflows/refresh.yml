@@ -40,6 +40,49 @@ jobs:
 
           gh release upload latest /tmp/mtg.db.gz /tmp/manifest.json --clobber
 
+      - name: Publish to data branch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          WT=/tmp/data-branch
+          rm -rf "$WT"
+          mkdir -p "$WT"
+          cd "$WT"
+
+          git init -q -b data
+          git config user.name  'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+          cp /tmp/mtg.db.gz    mtg.db.gz
+          cp /tmp/manifest.json manifest.json
+
+          CARDS=$(jq -r .card_count    manifest.json)
+          RULINGS=$(jq -r .ruling_count manifest.json)
+          BUILT_AT=$(jq -r .built_at    manifest.json)
+
+          cat > README.md <<'EOF'
+          # mtg-data: `data` branch
+
+          This branch is auto-updated daily by the [refresh workflow](https://github.com/nwgarne/mtg-data/actions/workflows/refresh.yml). It is **force-pushed with no history** and exists solely to provide stable `raw.githubusercontent.com` URLs for consumers that cannot follow GitHub Release download redirects (Release assets 302 to a separate host that some sandboxes block).
+
+          Stable URLs:
+
+          ```
+          https://raw.githubusercontent.com/nwgarne/mtg-data/data/mtg.db.gz
+          https://raw.githubusercontent.com/nwgarne/mtg-data/data/manifest.json
+          ```
+
+          These serve the identical artifact as the [`latest` Release](https://github.com/nwgarne/mtg-data/releases/tag/latest), on the same daily refresh schedule. See the [main branch README](https://github.com/nwgarne/mtg-data/blob/main/README.md) for schema and usage.
+          EOF
+
+          git add mtg.db.gz manifest.json README.md
+          git commit -q -m "data refresh: ${BUILT_AT} (cards=${CARDS}, rulings=${RULINGS})"
+          git push --force \
+            "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" \
+            HEAD:data
+
       - name: Summary
         run: |
           {

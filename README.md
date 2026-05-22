@@ -4,18 +4,29 @@ Daily-refreshed SQLite database of Magic: the Gathering cards and rulings, built
 
 ## Download
 
-Stable URLs (always point at the newest successful build):
+Two equivalent access paths are published. Both serve the same artifact, refreshed on the same daily schedule. Pick whichever your environment can reach.
+
+**Primary (GitHub Release):**
 
 ```
 https://github.com/nwgarne/mtg-data/releases/download/latest/mtg.db.gz
 https://github.com/nwgarne/mtg-data/releases/download/latest/manifest.json
 ```
 
+**Sandbox-friendly (raw branch, no redirect):**
+
+```
+https://raw.githubusercontent.com/nwgarne/mtg-data/data/mtg.db.gz
+https://raw.githubusercontent.com/nwgarne/mtg-data/data/manifest.json
+```
+
+The Release path is the canonical published location, but Release download URLs 302-redirect to `release-assets.githubusercontent.com`. Consumers whose network sandbox blocks that host (some hosted LLM tools, for example) can use the raw-branch path instead, which is served directly from `raw.githubusercontent.com` with no redirect. The [`data` branch](https://github.com/nwgarne/mtg-data/tree/data) is an orphan branch force-pushed by the refresh workflow on every successful build; it contains only the latest artifact and accumulates no history.
+
 Gzipped SQLite is roughly 15 to 25 MB (the uncompressed DB is ~80 MB). The manifest is a small JSON file with the SHA-256 of the gz, the card and ruling counts, the Scryfall version stamps for both bulk files, and the build timestamp.
 
 ## Refresh schedule
 
-A GitHub Actions workflow runs daily at **04:00 UTC**, shortly after Scryfall's nightly bulk regen, and clobber-updates the `latest` release. Failures are visible on the [Actions tab](https://github.com/nwgarne/mtg-data/actions/workflows/refresh.yml); the previous build asset stays in place if a refresh fails.
+A GitHub Actions workflow runs daily at **04:00 UTC**, shortly after Scryfall's nightly bulk regen. It clobber-updates the `latest` release and force-pushes the same artifact to the [`data` branch](https://github.com/nwgarne/mtg-data/tree/data). Failures are visible on the [Actions tab](https://github.com/nwgarne/mtg-data/actions/workflows/refresh.yml); the previous build assets stay in place if a refresh fails.
 
 ## Schema
 
