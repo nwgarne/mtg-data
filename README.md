@@ -11,7 +11,7 @@ https://github.com/nwgarne/mtg-data/releases/download/latest/mtg.db.gz
 https://github.com/nwgarne/mtg-data/releases/download/latest/manifest.json
 ```
 
-Gzipped SQLite is typically 25 to 60 MB. The manifest is a small JSON file with the SHA-256 of the gz, the card and ruling counts, the Scryfall version stamps for both bulk files, and the build timestamp.
+Gzipped SQLite is roughly 15 to 25 MB (the uncompressed DB is ~80 MB). The manifest is a small JSON file with the SHA-256 of the gz, the card and ruling counts, the Scryfall version stamps for both bulk files, and the build timestamp.
 
 ## Refresh schedule
 
