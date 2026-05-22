@@ -1,0 +1,11 @@
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.db.gz
+*.json
+__pycache__/
+*.pyc
+.venv/
+venv/
+.DS_Store

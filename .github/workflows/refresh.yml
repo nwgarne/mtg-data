@@ -1,0 +1,51 @@
+name: Refresh MTG Database
+
+on:
+  schedule:
+    - cron: '0 4 * * *'   # 04:00 UTC daily, just after Scryfall's nightly bulk regen
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-mtg-db
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Build database
+        run: python scripts/build-db.py
+
+      - name: Upload to "latest" release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release view latest >/dev/null 2>&1 || \
+            gh release create latest \
+              --title "Latest MTG Database" \
+              --notes "Daily-refreshed SQLite database of MTG cards and rulings, sourced from Scryfall."
+
+          gh release upload latest /tmp/mtg.db.gz /tmp/manifest.json --clobber
+
+      - name: Summary
+        run: |
+          {
+            echo "## Build complete"
+            echo ""
+            echo '```json'
+            cat /tmp/manifest.json
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
