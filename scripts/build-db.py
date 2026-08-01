@@ -29,8 +29,8 @@ DB_NEW = TMP / "mtg.db.new"
 DB = TMP / "mtg.db"
 DB_GZ = TMP / "mtg.db.gz"
 MANIFEST = TMP / "manifest.json"
-ORACLE_JSON = TMP / "oracle-cards.json"
-RULINGS_JSON = TMP / "rulings.json"
+ORACLE_JSON = TMP / "oracle-cards.jsonl"
+RULINGS_JSON = TMP / "rulings.jsonl"
 
 SCRYFALL_BULK_INDEX = "https://api.scryfall.com/bulk-data"
 USER_AGENT = "nwgarne-mtg-data/1.0 (https://github.com/nwgarne/mtg-data)"
@@ -54,8 +54,25 @@ def http_download(url: str, dest: Path) -> int:
     if dest.exists():
         dest.unlink()
     with urllib.request.urlopen(req, timeout=600) as resp, open(dest, "wb") as out:
-        shutil.copyfileobj(resp, out, length=1 << 20)
+        # Bulk files are gzip payloads (.jsonl.gz), not Content-Encoding gzip.
+        src = gzip.GzipFile(fileobj=resp) if url.endswith(".gz") else resp
+        shutil.copyfileobj(src, out, length=1 << 20)
     return dest.stat().st_size
+
+
+def load_jsonl(path: Path) -> list:
+    """Parse a Scryfall JSONL bulk file (one object per line). Also tolerates
+    the legacy pretty-printed array format (bracket lines + trailing commas)."""
+    items = []
+    with open(path, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line or line in ("[", "]"):
+                continue
+            if line.endswith(","):
+                line = line[:-1]
+            items.append(json.loads(line))
+    return items
 
 
 def map_card(c: dict) -> dict | None:
@@ -155,28 +172,30 @@ def main() -> int:
     bulk = http_get_json(SCRYFALL_BULK_INDEX)
     oracle_entry = next((e for e in bulk["data"] if e.get("type") == "oracle_cards"), None)
     rulings_entry = next((e for e in bulk["data"] if e.get("type") == "rulings"), None)
-    if not oracle_entry or not rulings_entry:
-        print("[build] FATAL: manifest missing oracle_cards or rulings", file=sys.stderr)
+    # Scryfall removed download_uri (and `size`) from bulk-data in late July
+    # 2026; files are now gzipped JSONL behind jsonl_download_uri.
+    if not (oracle_entry or {}).get("jsonl_download_uri") or not (rulings_entry or {}).get("jsonl_download_uri"):
+        print("[build] FATAL: manifest missing jsonl_download_uri for oracle_cards or rulings", file=sys.stderr)
         return 1
     print(
         f"[build] oracle_cards updated_at={oracle_entry['updated_at']} "
-        f"size={oracle_entry.get('size'):,}",
+        f"compressed_size={oracle_entry.get('compressed_size')}",
         flush=True,
     )
     print(
         f"[build] rulings updated_at={rulings_entry['updated_at']} "
-        f"size={rulings_entry.get('size'):,}",
+        f"compressed_size={rulings_entry.get('compressed_size')}",
         flush=True,
     )
 
     time.sleep(SCRYFALL_DELAY)
     print(f"[build] downloading oracle_cards to {ORACLE_JSON}", flush=True)
-    oracle_bytes = http_download(oracle_entry["download_uri"], ORACLE_JSON)
+    oracle_bytes = http_download(oracle_entry["jsonl_download_uri"], ORACLE_JSON)
     print(f"[build] downloaded {oracle_bytes:,} bytes ({oracle_bytes/1048576:.1f} MB)", flush=True)
 
     time.sleep(SCRYFALL_DELAY)
     print(f"[build] downloading rulings to {RULINGS_JSON}", flush=True)
-    rulings_bytes = http_download(rulings_entry["download_uri"], RULINGS_JSON)
+    rulings_bytes = http_download(rulings_entry["jsonl_download_uri"], RULINGS_JSON)
     print(f"[build] downloaded {rulings_bytes:,} bytes ({rulings_bytes/1048576:.1f} MB)", flush=True)
 
     for p in (DB_NEW, Path(f"{DB_NEW}-journal"), Path(f"{DB_NEW}-wal"), Path(f"{DB_NEW}-shm")):
@@ -190,8 +209,7 @@ def main() -> int:
     con.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
 
     print(f"[build] parsing {ORACLE_JSON}", flush=True)
-    with open(ORACLE_JSON, "rb") as f:
-        cards = json.load(f)
+    cards = load_jsonl(ORACLE_JSON)
     print(f"[build] parsed {len(cards):,} card entries", flush=True)
 
     insert_card_sql = """
@@ -226,8 +244,7 @@ def main() -> int:
     del cards, rows
 
     print(f"[build] parsing {RULINGS_JSON}", flush=True)
-    with open(RULINGS_JSON, "rb") as f:
-        all_rulings = json.load(f)
+    all_rulings = load_jsonl(RULINGS_JSON)
     print(f"[build] parsed {len(all_rulings):,} ruling entries", flush=True)
 
     insert_ruling_sql = (
