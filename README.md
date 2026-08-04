@@ -72,6 +72,32 @@ python3 scripts/build-db.py
 
 Outputs land in `/tmp/`: `mtg.db`, `mtg.db.gz`, `manifest.json`.
 
+## Comprehensive Rules mirror
+
+The repo also mirrors the official Magic Comprehensive Rules document as machine-readable JSON. A [second workflow](./.github/workflows/rules.yml) checks [magic.wizards.com/en/rules](https://magic.wizards.com/en/rules) daily at **05:00 UTC** for the current CR `.txt` link; it commits to `main` only when Wizards publishes a new CR (a handful of times per year), so the URLs below are stable and quiet days produce no commits.
+
+Stable URLs (main branch, served directly from `raw.githubusercontent.com`):
+
+```
+https://raw.githubusercontent.com/nwgarne/mtg-data/main/rules/cr.json
+https://raw.githubusercontent.com/nwgarne/mtg-data/main/rules/cr-raw.txt
+https://raw.githubusercontent.com/nwgarne/mtg-data/main/rules/manifest.json
+```
+
+`cr-raw.txt` is the unmodified official text (BOM stripped, line endings normalized to LF). `manifest.json` carries `effective_date`, `version`, `rule_count`, `glossary_count`, `source_url`, `built_at`, and `sha256_raw`. `cr.json` has this shape:
+
+```json
+{
+  "version": "August 7, 2026",
+  "ruleCount": 3161,
+  "glossaryCount": 739,
+  "rules": [{ "rule": "100.1", "text": "These Magic rules apply to..." }],
+  "glossary": [{ "term": "Abandon", "text": "To turn a face-up ongoing scheme card..." }]
+}
+```
+
+Each numbered rule (`100.1`, `601.2a`, ...) is one entry with its wrapped text joined onto a single line. Note that the `rulings` table in `mtg.db` is a different thing: those are Scryfall's per-card rulings, not the game's Comprehensive Rules.
+
 ## Credit
 
 Card data and rulings are provided by [Scryfall](https://scryfall.com/) under their [API terms](https://scryfall.com/docs/api). Magic: the Gathering and all card names, art, and rules are property of Wizards of the Coast. This repo is a derivative pipeline; Scryfall is the canonical upstream source.

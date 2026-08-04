@@ -1,0 +1,82 @@
+name: Refresh Comprehensive Rules Mirror
+
+on:
+  schedule:
+    - cron: '0 5 * * *'   # 05:00 UTC daily; commits land only when WotC publishes a new CR
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Rebuild even if the effective date is unchanged (same-date re-upload by WotC)'
+        type: boolean
+        default: false
+      allow_shrink:
+        description: 'Permit counts to shrink past the 95 percent floor (legitimate CR restructuring)'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rules-mirror
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Build CR mirror
+        id: build
+        run: >
+          python scripts/build-cr.py
+          ${{ inputs.force == true && '--force' || '' }}
+          ${{ inputs.allow_shrink == true && '--allow-shrink' || '' }}
+
+      - name: Commit and push if changed
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "$(git status --porcelain rules/)" ]; then
+            echo "No changes under rules/; nothing to commit."
+            exit 0
+          fi
+
+          git config user.name  'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+          VERSION=$(jq -r .version         rules/manifest.json)
+          RULES=$(jq -r .rule_count        rules/manifest.json)
+          GLOSSARY=$(jq -r .glossary_count rules/manifest.json)
+
+          git add rules/
+          git commit -m "CR mirror: effective ${VERSION} (rules=${RULES}, glossary=${GLOSSARY})"
+          git pull --rebase origin main
+          git push \
+            "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" \
+            HEAD:main
+
+      - name: Summary
+        run: |
+          {
+            echo "## CR mirror run"
+            echo ""
+            if [ "${{ steps.build.outputs.changed }}" = "true" ]; then
+              echo '```json'
+              cat rules/manifest.json
+              echo '```'
+            else
+              echo "No change: the published CR effective date matches the current mirror."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

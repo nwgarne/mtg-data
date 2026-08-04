@@ -4,6 +4,7 @@
 *.db-shm
 *.db.gz
 *.json
+!rules/*.json
 __pycache__/
 *.pyc
 .venv/
