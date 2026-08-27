@@ -13,6 +13,7 @@ from __future__ import annotations
 import gzip
 import hashlib
 import json
+import re
 import shutil
 import sqlite3
 import sys
@@ -23,12 +24,17 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SCHEMA_PATH = REPO_ROOT / "schema.sql"
+# The CR mirror maintained by rules.yml / build-cr.py on main. Republished
+# to the data branch so consumers get rules alongside cards from one place.
+CR_RAW_PATH = REPO_ROOT / "rules" / "cr-raw.txt"
+CR_MANIFEST_PATH = REPO_ROOT / "rules" / "manifest.json"
 
 TMP = Path("/tmp")
 DB_NEW = TMP / "mtg.db.new"
 DB = TMP / "mtg.db"
 DB_GZ = TMP / "mtg.db.gz"
 MANIFEST = TMP / "manifest.json"
+RULES_OUT = TMP / "rules.txt"
 ORACLE_JSON = TMP / "oracle-cards.jsonl"
 RULINGS_JSON = TMP / "rulings.jsonl"
 
@@ -37,6 +43,65 @@ USER_AGENT = "nwgarne-mtg-data/1.0 (https://github.com/nwgarne/mtg-data)"
 ACCEPT = "application/json"
 SCRYFALL_DELAY = 0.1
 SCHEMA_VERSION = 1
+
+
+def stage_cr_mirror() -> dict:
+    """Copy the CR mirror to /tmp/rules.txt and return its additive manifest keys.
+
+    The effective date is read from the line the CR itself prints ("These rules
+    are effective as of August 7, 2026"), not from fetch time and not from the
+    source URL, so the value always describes the exact bytes being published.
+    It is cross-checked against rules/manifest.json, which derives the same date
+    from the source filename; a mismatch means the mirror is half-updated.
+
+    Called before the Scryfall download so a broken mirror fails in the first
+    second rather than after a twenty-minute build.
+    """
+    if not CR_RAW_PATH.exists():
+        raise FileNotFoundError(
+            f"CR mirror missing at {CR_RAW_PATH}; rules.yml should have committed it"
+        )
+
+    text = CR_RAW_PATH.read_text(encoding="utf-8")
+    raw = CR_RAW_PATH.read_bytes()
+
+    line = next((l for l in text.splitlines() if re.search(r"effective as of", l, re.I)), None)
+    if not line:
+        raise ValueError("CR mirror has no 'effective as of' line; refusing to guess a date")
+    m = re.search(r"effective as of\s+(.+?)\.?\s*$", line, re.I)
+    printed = m.group(1).strip() if m else ""
+    try:
+        effective = datetime.strptime(printed, "%B %d, %Y").strftime("%Y-%m-%d")
+    except ValueError as e:
+        raise ValueError(f"could not parse CR effective date from {printed!r}") from e
+
+    # rules/manifest.json derives its effective_date from the SOURCE FILENAME
+    # while this reads the date the text prints. WotC does not always keep the
+    # two in step: MagicCompRules 20260819.txt ships text saying "effective as
+    # of August 7, 2026". The published text is authoritative for this key, so a
+    # disagreement is reported and not fatal; failing here would take the daily
+    # card pipeline down over an upstream naming quirk we do not control.
+    if CR_MANIFEST_PATH.exists():
+        claimed = json.loads(CR_MANIFEST_PATH.read_text(encoding="utf-8")).get("effective_date")
+        if claimed and claimed != effective:
+            print(
+                f"[build] NOTE: CR text says effective {effective}; "
+                f"rules/manifest.json says {claimed} (derived from the source "
+                f"filename). Publishing the text date, which describes these bytes.",
+                flush=True,
+            )
+
+    RULES_OUT.write_bytes(raw)
+    print(
+        f"[build] CR mirror staged: effective {effective} "
+        f"({len(raw):,} bytes) -> {RULES_OUT}",
+        flush=True,
+    )
+    return {
+        "rules_sha256": hashlib.sha256(raw).hexdigest(),
+        "rules_effective_date": effective,
+        "rules_size_bytes": len(raw),
+    }
 
 
 def http_get_json(url: str) -> dict:
@@ -166,6 +231,12 @@ def main() -> int:
 
     if not SCHEMA_PATH.exists():
         print(f"[build] FATAL: schema not found at {SCHEMA_PATH}", file=sys.stderr)
+        return 1
+
+    try:
+        cr_keys = stage_cr_mirror()
+    except (OSError, ValueError) as e:
+        print(f"[build] FATAL: {e}", file=sys.stderr)
         return 1
 
     print("[build] fetching Scryfall bulk-data manifest", flush=True)
@@ -349,6 +420,9 @@ def main() -> int:
         "scryfall_rulings_updated_at": rulings_entry["updated_at"],
         "built_at": built_at,
         "schema_version": SCHEMA_VERSION,
+        # Additive only. Existing keys above are read by mtg-cards v3
+        # (sha256, built_at, card_count, ruling_count) and must not move.
+        **cr_keys,
     }
     MANIFEST.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     print(f"[build] manifest written to {MANIFEST}", flush=True)

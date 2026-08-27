@@ -18,11 +18,18 @@ https://github.com/nwgarne/mtg-data/releases/download/latest/manifest.json
 ```
 https://raw.githubusercontent.com/nwgarne/mtg-data/data/mtg.db.gz
 https://raw.githubusercontent.com/nwgarne/mtg-data/data/manifest.json
+https://raw.githubusercontent.com/nwgarne/mtg-data/data/rules.txt
 ```
 
 The Release path is the canonical published location, but Release download URLs 302-redirect to `release-assets.githubusercontent.com`. Consumers whose network sandbox blocks that host (some hosted LLM tools, for example) can use the raw-branch path instead, which is served directly from `raw.githubusercontent.com` with no redirect. The [`data` branch](https://github.com/nwgarne/mtg-data/tree/data) is an orphan branch force-pushed by the refresh workflow on every successful build; it contains only the latest artifact and accumulates no history.
 
 Gzipped SQLite is roughly 15 to 25 MB (the uncompressed DB is ~80 MB). The manifest is a small JSON file with the SHA-256 of the gz, the card and ruling counts, the Scryfall version stamps for both bulk files, and the build timestamp.
+
+The `data` branch also carries `rules.txt`, the Comprehensive Rules mirror described below, so a consumer can fetch cards and rules from one place without a second host or a second schedule. The manifest describes it with three additive keys: `rules_sha256`, `rules_effective_date` (the date printed in the CR text itself, not fetch time) and `rules_size_bytes`. These are additive; existing keys are unchanged, because downstream consumers read `sha256`, `built_at`, `card_count` and `ruling_count` by name.
+
+Note that `rules_effective_date` and `rules/manifest.json`'s `effective_date` can legitimately differ. The former is the date the CR text prints; the latter is derived from the source filename, and WotC does not always keep the two in step (`MagicCompRules 20260819.txt` ships text reading "effective as of August 7, 2026"). The data-branch key reports the text date because it describes the bytes actually published. A disagreement is logged, not fatal.
+
+One timing note: `rules.txt` on the `data` branch is whatever the CR mirror on `main` held when the refresh workflow ran. The refresh runs at 04:00 UTC and the CR workflow at 05:00, so on a day WotC publishes a new CR the `data` branch picks it up on the following run. The CR changes a few times a year, so the practical lag is one day at worst; `rules/` on `main` is always current.
 
 ## Refresh schedule
 

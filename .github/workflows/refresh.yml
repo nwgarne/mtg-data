@@ -38,7 +38,7 @@ jobs:
               --title "Latest MTG Database" \
               --notes "Daily-refreshed SQLite database of MTG cards and rulings, sourced from Scryfall."
 
-          gh release upload latest /tmp/mtg.db.gz /tmp/manifest.json --clobber
+          gh release upload latest /tmp/mtg.db.gz /tmp/manifest.json /tmp/rules.txt --clobber
 
       - name: Publish to data branch
         env:
@@ -57,10 +57,16 @@ jobs:
 
           cp /tmp/mtg.db.gz    mtg.db.gz
           cp /tmp/manifest.json manifest.json
+          cp /tmp/rules.txt     rules.txt
 
-          CARDS=$(jq -r .card_count    manifest.json)
-          RULINGS=$(jq -r .ruling_count manifest.json)
-          BUILT_AT=$(jq -r .built_at    manifest.json)
+          CARDS=$(jq -r .card_count           manifest.json)
+          RULINGS=$(jq -r .ruling_count       manifest.json)
+          BUILT_AT=$(jq -r .built_at          manifest.json)
+          CR_DATE=$(jq -r .rules_effective_date manifest.json)
+
+          # The manifest hash must describe the rules.txt actually being pushed.
+          test "$(sha256sum rules.txt | cut -d' ' -f1)" = "$(jq -r .rules_sha256 manifest.json)" \
+            || { echo 'FATAL: rules.txt sha256 does not match manifest.rules_sha256' >&2; exit 1; }
 
           cat > README.md <<'EOF'
           # mtg-data: `data` branch
@@ -72,13 +78,16 @@ jobs:
           ```
           https://raw.githubusercontent.com/nwgarne/mtg-data/data/mtg.db.gz
           https://raw.githubusercontent.com/nwgarne/mtg-data/data/manifest.json
+          https://raw.githubusercontent.com/nwgarne/mtg-data/data/rules.txt
           ```
+
+          `rules.txt` is the Comprehensive Rules mirror maintained on `main` by the [rules workflow](https://github.com/nwgarne/mtg-data/actions/workflows/rules.yml), republished here so a consumer can fetch cards and rules from one place. `manifest.json` describes it with `rules_sha256`, `rules_effective_date` and `rules_size_bytes`; the effective date is the one printed in the CR text itself.
 
           These serve the identical artifact as the [`latest` Release](https://github.com/nwgarne/mtg-data/releases/tag/latest), on the same daily refresh schedule. See the [main branch README](https://github.com/nwgarne/mtg-data/blob/main/README.md) for schema and usage.
           EOF
 
-          git add mtg.db.gz manifest.json README.md
-          git commit -q -m "data refresh: ${BUILT_AT} (cards=${CARDS}, rulings=${RULINGS})"
+          git add mtg.db.gz manifest.json rules.txt README.md
+          git commit -q -m "data refresh: ${BUILT_AT} (cards=${CARDS}, rulings=${RULINGS}, CR ${CR_DATE})"
           git push --force \
             "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" \
             HEAD:data
