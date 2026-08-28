@@ -2,7 +2,9 @@ name: Refresh MTG Database
 
 on:
   schedule:
-    - cron: '0 4 * * *'   # 04:00 UTC daily, just after Scryfall's nightly bulk regen
+    - cron: '0 4 * * *'   # 04:00 UTC daily, just after Scryfall's nightly bulk regen and
+                          # an hour after rules.yml, so the CR mirror it republishes to
+                          # the data branch is already current for the day.
   workflow_dispatch:
 
 permissions:

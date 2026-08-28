@@ -29,11 +29,11 @@ The `data` branch also carries `rules.txt`, the Comprehensive Rules mirror descr
 
 Note that `rules_effective_date` and `rules/manifest.json`'s `effective_date` can legitimately differ. The former is the date the CR text prints; the latter is derived from the source filename, and WotC does not always keep the two in step (`MagicCompRules 20260819.txt` ships text reading "effective as of August 7, 2026"). The data-branch key reports the text date because it describes the bytes actually published. A disagreement is logged, not fatal.
 
-One timing note: `rules.txt` on the `data` branch is whatever the CR mirror on `main` held when the refresh workflow ran. The refresh runs at 04:00 UTC and the CR workflow at 05:00, so on a day WotC publishes a new CR the `data` branch picks it up on the following run. The CR changes a few times a year, so the practical lag is one day at worst; `rules/` on `main` is always current.
+One ordering note: `rules.txt` on the `data` branch is whatever the CR mirror on `main` held when the refresh workflow ran. The CR workflow runs at 03:00 UTC and the refresh at 04:00, so a newly published CR reaches the `data` branch the same morning. If the CR workflow is delayed or fails, the refresh still publishes the previous mirror rather than nothing, and the next run picks up the new one; `rules/` on `main` is always current either way.
 
 ## Refresh schedule
 
-A GitHub Actions workflow runs daily at **04:00 UTC**, shortly after Scryfall's nightly bulk regen. It clobber-updates the `latest` release and force-pushes the same artifact to the [`data` branch](https://github.com/nwgarne/mtg-data/tree/data). Failures are visible on the [Actions tab](https://github.com/nwgarne/mtg-data/actions/workflows/refresh.yml); the previous build assets stay in place if a refresh fails.
+A GitHub Actions workflow runs daily at **04:00 UTC**, shortly after Scryfall's nightly bulk regen and an hour after the CR mirror workflow, so the `rules.txt` it republishes is current for the day. It clobber-updates the `latest` release and force-pushes the same artifact to the [`data` branch](https://github.com/nwgarne/mtg-data/tree/data). Failures are visible on the [Actions tab](https://github.com/nwgarne/mtg-data/actions/workflows/refresh.yml); the previous build assets stay in place if a refresh fails.
 
 ## Schema
 

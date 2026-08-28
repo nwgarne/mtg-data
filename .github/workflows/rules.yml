@@ -2,7 +2,9 @@ name: Refresh Comprehensive Rules Mirror
 
 on:
   schedule:
-    - cron: '0 5 * * *'   # 05:00 UTC daily; commits land only when WotC publishes a new CR
+    - cron: '0 3 * * *'   # 03:00 UTC daily, an hour AHEAD of refresh.yml so a new CR
+                          # reaches the data branch the same morning. Commits land only
+                          # when WotC publishes a new CR; quiet days are a no-op.
   workflow_dispatch:
     inputs:
       force:
