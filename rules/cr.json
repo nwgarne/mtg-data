@@ -1,7 +1,7 @@
 {
-  "version": "August 7, 2026",
-  "ruleCount": 3161,
-  "glossaryCount": 739,
+  "version": "September 25, 2026",
+  "ruleCount": 3165,
+  "glossaryCount": 741,
   "rules": [
     {
       "rule": "100.1",
@@ -978,6 +978,10 @@
     {
       "rule": "111.10w",
       "text": "A Vibranium token is a colorless Vibranium artifact token with indestructible and “{T}: Add {C}. This mana can’t be spent to cast a nonartifact spell.”"
+    },
+    {
+      "rule": "111.10x",
+      "text": "A Heartwood token is a red and green Heartwood artifact token with “{T}: Add {R} or {G}.”"
     },
     {
       "rule": "111.11",
@@ -2269,7 +2273,7 @@
     },
     {
       "rule": "205.3g",
-      "text": "Artifacts have their own unique set of subtypes; these subtypes are called artifact types. The artifact types are Attraction (see rule 717), Blood, Bobblehead, Book, Clue, Contraption, Equipment (see rule 301.5), Food, Fortification (see rule 301.6), Gold, Incubator, Infinity, Junk, Lander, Map, Mutagen, Powerstone, Spacecraft, Stone, Treasure, Vehicle (see rule 301.7), and Vibranium."
+      "text": "Artifacts have their own unique set of subtypes; these subtypes are called artifact types. The artifact types are Attraction (see rule 717), Blood, Bobblehead, Book, Clue, Contraption, Equipment (see rule 301.5), Food, Fortification (see rule 301.6), Gold, Heartwood, Incubator, Infinity, Junk, Lander, Map, Mutagen, Powerstone, Spacecraft, Stone, Treasure, Vehicle (see rule 301.7), and Vibranium."
     },
     {
       "rule": "205.3h",
@@ -3693,39 +3697,43 @@
     },
     {
       "rule": "506.6",
-      "text": "Some abilities check to see whether or not a creature “had to attack” during a particular combat phase. A creature had to attack if one or more effects were requiring that creature to attack at the time attackers were declared in that combat. A creature did not “have to attack” if there were no such effects that required it to attack, even if there were no other legal attacks that could have been declared. (See rule 508.)"
+      "text": "A creature attacks a player alone if it’s declared as an attacker attacking a player during the declare attackers step and no other creature is declared as an attacker attacking that player. A creature is attacking a player alone if it’s attacking a player and no other creatures are attacking that player."
     },
     {
       "rule": "506.7",
+      "text": "Some abilities check to see whether or not a creature “had to attack” during a particular combat phase. A creature had to attack if one or more effects were requiring that creature to attack at the time attackers were declared in that combat. A creature did not “have to attack” if there were no such effects that required it to attack, even if there were no other legal attacks that could have been declared. (See rule 508.)"
+    },
+    {
+      "rule": "506.8",
       "text": "Some spells state that they may be cast “only [before/after] [a particular point in the combat phase],” in which that point may be “attackers are declared,” “blockers are declared,” “the combat damage step,” “the end of combat step,” “the combat phase,” or “combat.”"
     },
     {
-      "rule": "506.7a",
+      "rule": "506.8a",
       "text": "A spell that states it may be cast “only before (or after) attackers are declared” is referring to the turn-based action of declaring attackers. It may be cast only before (or after) the declare attackers step begins, regardless of whether any attackers are actually declared. (See rule 508.)"
     },
     {
-      "rule": "506.7b",
+      "rule": "506.8b",
       "text": "A spell that states it may be cast “only before (or after) blockers are declared” is referring to the turn-based action of declaring blockers. It may be cast only before (or after) the declare blockers step begins, regardless of whether any blockers are actually declared. (See rule 509.)"
     },
     {
-      "rule": "506.7c",
-      "text": "Some spells state that they may be cast only “during combat” or “during a certain player’s combat phase” in addition to the criteria described in rule 506.7. If a turn has multiple combat phases, such spells may be cast at an appropriate time during any of them."
+      "rule": "506.8c",
+      "text": "Some spells state that they may be cast only “during combat” or “during a certain player’s combat phase” in addition to the criteria described in rule 506.8. If a turn has multiple combat phases, such spells may be cast at an appropriate time during any of them."
     },
     {
-      "rule": "506.7d",
-      "text": "Some spells state that they may be cast “only before (or after) [a particular point in the combat phase],” but don’t meet the additional criteria described in rule 506.7c. If a turn has multiple combat phases, such spells may be cast that turn only before (or after) the stated point of the first combat phase."
+      "rule": "506.8d",
+      "text": "Some spells state that they may be cast “only before (or after) [a particular point in the combat phase],” but don’t meet the additional criteria described in rule 506.8c. If a turn has multiple combat phases, such spells may be cast that turn only before (or after) the stated point of the first combat phase."
     },
     {
-      "rule": "506.7e",
+      "rule": "506.8e",
       "text": "If a spell states that it may be cast “only before [a particular point in the combat phase],” but the stated point doesn’t exist within the relevant combat phase because the declare blockers step and the combat damage step are skipped (see rule 508.8), then the spell may be cast only before the declare attackers step ends. If the stated point doesn’t exist because the relevant combat phase has been skipped, then the spell may be cast only before the precombat main phase ends."
     },
     {
-      "rule": "506.7f",
+      "rule": "506.8f",
       "text": "If a spell states that it may be cast “only during combat after blockers are declared,” but the declare blockers step is skipped that combat phase (see rule 508.8), then the spell may not be cast during that combat phase."
     },
     {
-      "rule": "506.7g",
-      "text": "Rules 506.7 and 506.7a–f apply to abilities that state that they may be activated only at certain times with respect to combat just as they apply to spells that state that they may be cast only at certain times with respect to combat."
+      "rule": "506.8g",
+      "text": "Rules 506.8 and 506.8a–f apply to abilities that state that they may be activated only at certain times with respect to combat just as they apply to spells that state that they may be cast only at certain times with respect to combat."
     },
     {
       "rule": "507.1",
@@ -6617,7 +6625,7 @@
     },
     {
       "rule": "701.67b",
-      "text": "If a waterbend cost is part of the total cost to cast a spell or activate an ability (usually because the waterbend cost itself is an additional cost), the alternate method to pay for mana described in rule 701.67a may be used only to pay for the amount of generic mana in the waterbend cost, even if the total cost to cast that spell or activate that ability includes other generic mana components."
+      "text": "If a waterbend cost is part of the total cost to cast a spell or activate an ability (usually because the waterbend cost itself is an additional cost), the alternate method to pay for mana described in rule 701.67a may be used only to pay for the amount of generic mana in the waterbend cost, even if the total cost to cast that spell or activate that ability includes other generic mana components. Example: Spirit Water Revival is a spell that costs {1}{U}{U} and says, in part, “As an additional cost to cast this spell, waterbend {6}.” As you cast it, you may tap up to six artifacts and/or creatures you control to pay the for the {6} in its waterbend cost, but you can’t tap any artifacts or creatures to pay for any part of the {1}{U}{U} mana cost."
     },
     {
       "rule": "701.67c",
@@ -6658,6 +6666,14 @@
     {
       "rule": "701.70a",
       "text": "“Recruit” means “Draw a card, then discard a card. If you discarded a nonland card this way, create a 1/1 white Human Soldier creature token.”"
+    },
+    {
+      "rule": "701.71",
+      "text": "Empower Jace"
+    },
+    {
+      "rule": "701.71a",
+      "text": "To empower Jace N means “If you don’t control a Jace planeswalker token, create a blue Jace planeswalker token with 0 loyalty, ‘[−1]: Surveil 1,’ and ‘[−3]: Draw a card.’ Choose a Jace planeswalker token you control. Put N loyalty counters on it.”"
     },
     {
       "rule": "702.1",
@@ -13482,6 +13498,10 @@
       "text": "A multiplayer variant played among three-player teams. See rule 809, “Emperor Variant.”"
     },
     {
+      "term": "Empower Jace",
+      "text": "A keyword action that gives you a Jace planeswalker token and/or puts loyalty counters on a Jace token you already have. See rule 701.71, “Empower Jace.”"
+    },
+    {
       "term": "Enchant",
       "text": "A keyword ability that defines what an Aura spell can target and what an Aura permanent can be attached to. See rule 303, “Enchantments,” and rule 702.5, “Enchant.”"
     },
@@ -13864,6 +13884,10 @@
     {
       "term": "Heal",
       "text": "To remove damage marked on a permanent. See rule 701.69, “Heal.”"
+    },
+    {
+      "term": "Heartwood Token",
+      "text": "A Heartwood token is a red and green artifact token with “{T}: Add {R} or {G}.” For more information about predefined tokens, see rule 111.10."
     },
     {
       "term": "Hexproof",
