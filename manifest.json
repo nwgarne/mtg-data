@@ -1,0 +1,14 @@
+{
+  "filename": "mtg.db.gz",
+  "size_bytes": 19165095,
+  "sha256": "1db633f6f51d28a921e65cedea209322e5060f996d026809e33c1c15ea1d012e",
+  "card_count": 39287,
+  "ruling_count": 79706,
+  "scryfall_oracle_updated_at": "2026-10-31T09:01:54.814+00:00",
+  "scryfall_rulings_updated_at": "2026-10-31T09:00:32.478+00:00",
+  "built_at": "2026-10-31T10:15:50Z",
+  "schema_version": 1,
+  "rules_sha256": "8d860e451f20f38865b725b42d82feb714c725373dd8f3b32b8652b3eeb070ca",
+  "rules_effective_date": "2026-09-25",
+  "rules_size_bytes": 977752
+}
