@@ -1,9 +1,9 @@
 {
-  "effective_date": "2026-09-25",
-  "version": "September 25, 2026",
-  "rule_count": 3165,
-  "glossary_count": 741,
-  "source_url": "https://media.wizards.com/2026/downloads/MagicCompRules%2020260925.txt",
-  "built_at": "2026-10-12T07:03:15Z",
-  "sha256_raw": "8d860e451f20f38865b725b42d82feb714c725373dd8f3b32b8652b3eeb070ca"
+  "effective_date": "2026-11-06",
+  "version": "November 6, 2026",
+  "rule_count": 3182,
+  "glossary_count": 744,
+  "source_url": "https://media.wizards.com/2026/downloads/MagicCompRules%2020261106.txt",
+  "built_at": "2026-11-06T10:03:57Z",
+  "sha256_raw": "d7cdcc11f2b7ab88b1164791dd0cafb6bf0c4e1f0863e0ee6abca2d3a7fb7674"
 }
